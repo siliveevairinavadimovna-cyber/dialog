@@ -2,719 +2,354 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Тренажер: Безопасный диалог на участке</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.2/iframe-resizer.contentWindow.min.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер Урока 2: Профайлинг безопасности</title>
     <style>
         :root {
-            --primary-color: #1e293b;
-            --text-color: #334155;
-            --bg-light: #f8fafc;
+            --primary-color: #2563eb;
+            --success-color: #16a34a;
+            --error-color: #dc2626;
+            --bg-slate: #f8fafc;
+            --chat-bg: #ffffff;
+            --text-main: #1e293b;
             --border-color: #e2e8f0;
-            --btn-hover: #f1f5f9;
-            --success: #166534;
-            --success-bg: #f0fdf4;
-            --error: #991b1b;
-            --error-bg: #fef2f2;
-            --accent: #2563eb;
+            --worker-msg: #f1f5f9;
+            --user-msg: #dbeafe;
+            --user-text: #1e40af;
         }
 
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            color: var(--text-color);
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-            background: #ffffff;
-        }
-
-        /* Адаптивная ширина и жесткое ограничение высоты до 590px */
-        .simulator-container {
+        .sim-container {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             width: 100%;
-            max-width: 100%;
-            height: 590px;
-            max-height: 590px;
+            max-width: 850px;
+            height: 600px; /* СТРОГОЕ ОГРАНИЧЕНИЕ ВЫСОТЫ */
+            margin: 10px auto;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            background: #ffffff;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            border-radius: 12px;
+            background-color: var(--bg-slate);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
-        /* Верхняя панель */
+        /* Шапка */
         .sim-header {
-            background: var(--bg-light);
-            border-bottom: 1px solid var(--border-color);
             padding: 12px 20px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             flex-shrink: 0;
         }
 
         .sim-title {
-            font-size: 13px;
+            margin: 0;
+            font-size: 15px;
             font-weight: 700;
-            color: var(--primary-color);
+            color: var(--text-main);
         }
 
-        .scale-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .sim-status {
+            font-size: 12px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 500;
         }
 
-        .scale-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .trust-bar-bg {
-            width: 140px;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .trust-bar {
-            height: 100%;
-            width: 50%;
-            background: #eab308;
-            transition: all 0.4s ease;
-        }
-
-        /* Главная рабочая зона */
-        .sim-main {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Панель персонажа (слева) */
-        .character-stage {
-            width: 38%;
-            background: #1e293b;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 20px;
-            border-right: 1px solid var(--border-color);
-            position: relative;
-            color: #ffffff;
-            flex-shrink: 0;
-        }
-
-        .character-bg-effect {
-            position: absolute;
-            top: 30px;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
-
-        .character-name {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            z-index: 2;
-        }
-
-        .character-role {
-            font-size: 11px;
-            color: #94a3b8;
-            z-index: 2;
-            text-align: center;
-            line-height: 1.3;
-        }
-
-        /* Зона диалога (справа) */
-        .dialog-pane {
-            width: 62%;
-            display: flex;
-            flex-direction: column;
-            background: #ffffff;
-            height: 100%;
-        }
-
-        .chat-history {
-            flex: 1;
-            padding: 20px;
+        /* Окно диалога */
+        .sim-chat-window {
+            flex-grow: 1;
             overflow-y: auto;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            background-color: #f8fafc;
         }
 
         .msg {
             max-width: 85%;
             padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            animation: fadeIn 0.3s ease-in-out;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: simFadeIn 0.25s ease-in-out;
         }
 
-        .msg.bot {
-            background: var(--bg-light);
+        .msg-worker {
+            background-color: var(--worker-msg);
+            color: var(--text-main);
             align-self: flex-start;
-            border-bottom-left-radius: 2px;
-            border: 1px solid var(--border-color);
+            border-top-left-radius: 2px;
         }
 
-        .msg.user {
-            background: #eff6ff;
-            color: #1e40af;
+        .msg-user {
+            background-color: var(--user-msg);
+            color: var(--user-text);
             align-self: flex-end;
-            border-bottom-right-radius: 2px;
-            border: 1px solid #bfdbfe;
+            border-top-right-radius: 2px;
         }
 
-        .msg.system-status {
-            background: var(--bg-light);
-            border: 1px solid var(--border-color);
+        .msg-system {
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fef3c7;
             align-self: center;
-            max-width: 100%;
             text-align: center;
-            font-size: 12.5px;
-            padding: 12px;
-            border-radius: 6px;
-        }
-
-        /* Нижний блок вариантов ответов */
-        .action-pane {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-light);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .choice-btn {
-            width: 100%;
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            padding: 10px 14px;
-            border-radius: 6px;
-            text-align: left;
-            font-size: 12.5px;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .choice-btn:hover {
-            background: var(--btn-hover);
-            border-color: #cbd5e1;
-            transform: translateX(2px);
-        }
-
-        /* Форма чек-листа */
-        .checklist-overlay {
-            display: none;
-            flex-direction: column;
-            padding: 24px;
-            background: #ffffff;
-            height: 100%;
-            width: 100%;
-            overflow-y: auto;
-        }
-
-        .checklist-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin: 0 0 6px 0;
-        }
-
-        .checklist-subtitle {
-            font-size: 12.5px;
-            color: #64748b;
-            margin-bottom: 16px;
-        }
-
-        .checklist-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .option-card {
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .option-card:hover {
-            background: var(--bg-light);
-            border-color: #cbd5e1;
-        }
-
-        .option-card.selected {
-            border-color: var(--accent);
-            background: #eff6ff;
-        }
-
-        .option-radio {
-            margin-top: 3px;
-        }
-
-        .option-text strong {
-            display: block;
             font-size: 13px;
-            color: var(--primary-color);
-            margin-bottom: 2px;
+            max-width: 95%;
         }
 
-        .option-text span {
-            display: block;
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        .submit-btn {
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            padding: 11px 20px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            align-self: flex-start;
-            transition: background 0.2s ease;
-        }
-
-        .submit-btn:hover {
-            background: #1d4ed8;
-        }
-
-        /* Экран финальных результатов */
-        .result-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            text-align: center;
-            height: 100%;
-            width: 100%;
-            overflow-y: auto;
-        }
-
-        .result-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .result-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-        }
-
-        .result-desc {
-            font-size: 13.5px;
-            max-width: 440px;
-            color: #64748b;
-            margin-bottom: 24px;
+        .msg-final {
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            align-self: center;
+            font-size: 14px;
+            max-width: 95%;
             line-height: 1.5;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+        /* Зона вариантов ответов */
+        .sim-options-zone {
+            padding: 14px 20px;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: #ffffff;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 9px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 1.3;
+            transition: all 0.15s ease;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(37, 99, 235, 0.05);
+            transform: translateX(2px);
+        }
+
+        @keyframes simFadeIn {
+            from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-<div class="simulator-container">
+<div class="sim-container">
     <div class="sim-header">
-        <div class="sim-title" id="current-stage-title">Кейс 1 из 2: Электрогазосварщик Николай</div>
-        <div class="scale-container">
-            <span class="scale-label">Доверие рабочего:</span>
-            <div class="trust-bar-bg">
-                <div class="trust-bar" id="trust-bar"></div>
-            </div>
-        </div>
+        <h3 class="sim-title" id="sim-hero-title">Диалог 1: Ремонтник Николай</h3>
+        <span class="sim-status" id="sim-progress">Этап 1 из 3</span>
     </div>
 
-    <div class="sim-main" id="sim-main-zone">
-        
-        <div class="character-stage" id="character-stage-block">
-            <div class="character-bg-effect" id="char-icon">👨‍🏭</div>
-            <div class="character-name" id="char-name">Николай</div>
-            <div class="character-role" id="char-role">Электрогазосварщик, Цех №3<br>Стаж: 22 года</div>
+    <div class="sim-chat-window" id="chat-window">
         </div>
 
-        <div class="dialog-pane" id="dialog-pane-zone">
-            <div class="chat-history" id="chat-history"></div>
-            <div class="action-pane" id="action-pane"></div>
+    <div class="sim-options-zone" id="options-zone">
         </div>
-
-        <div class="checklist-overlay" id="checklist-zone">
-            <div class="checklist-title">Зафиксируйте итоги наблюдения в чек-лист</div>
-            <div class="checklist-subtitle" id="checklist-subtitle">Определите истинную модель поведения сотрудника:</div>
-            <div class="checklist-options" id="checklist-options-container"></div>
-            <button class="submit-btn" onclick="submitChecklist()">Подтвердить запись</button>
-        </div>
-
-        <div class="result-screen" id="result-zone">
-            <div class="result-icon" id="result-icon">🏆</div>
-            <div class="result-title" id="result-title">Практикум успешно пройден!</div>
-            <div class="result-desc" id="result-desc">Вы мастерски провели диалоги и верно выявили скрытые причины рисков.</div>
-            <button class="submit-btn" id="result-action-btn" onclick="restartSim()">Пройти заново</button>
-        </div>
-
-    </div>
 </div>
 
 <script>
-    // Сценарии ветвления диалогов для двух персонажей
-    const scenario = {
-        nikolai: {
-            title: "Кейс 1 из 2: Электрогазосварщик Николай",
-            name: "Николай",
-            role: "Электрогазосварщик, Цех №3<br>Стаж: 22 года",
-            icon: "👨‍🏭",
-            start: {
-                bot_text: "Вы подходите к сварочному посту. Николай варит каркас конструкции. Защитный щиток поднят, на глазах — обычные темные солнцезащитные очки.",
-                choices: [
-                    {
-                        text: "«Николай, почему нарушаем? Где ваша штатная маска? Опять хотите предписание и штраф получить?»",
-                        trust: 15,
-                        next: "fail_tone"
-                    },
-                    {
-                        text: "«Николай, согласно инструкции по охране труда №12, вы обязаны использовать СИЗ лица и глаз. Вы в курсе, что нарушаете?»",
-                        trust: 40,
-                        next: "bureaucracy"
-                    },
-                    {
-                        text: "«Николай, добрый день! Расскажите, какую задачу сейчас выполняете на этом участке?»",
-                        trust: 75,
-                        next: "step2_good"
-                    }
-                ]
-            },
-            fail_tone: {
-                bot_text: "Николай раздраженно откладывает держатель: «Да нормально всё, че вы сразу со штрафами лезете? Работаю я, план горит, идите в соседний цех проверяйте». Николай закрылся и ушел в глухую защиту.",
-                choices: [{ text: "Диалог завершен. Перейти к заполнению чек-листа", trust: 15, triggerChecklist: true }]
-            },
-            bureaucracy: {
-                bot_text: "Николай пожимает плечами, не снимая очков: «Ну в курсе. Инструкцию знаю. Только работать надо, а не бумажки читать. Чего вы конкретно хотели-то?»",
-                choices: [
-                    {
-                        text: "«Зачем вы солнцезащитные очки нацепили? Вы понимаете, что вам окалина в глаз прилетит?»",
-                        trust: 20,
-                        next: "fail_tone"
-                    },
-                    {
-                        text: "«Я хочу понять, с чем связано то, что вы работаете с поднятым щитком и в темных очках?»",
-                        trust: 65,
-                        next: "step2_reveal"
-                    }
-                ]
-            },
-            step2_good: {
-                bot_text: "Николай спокойно откладывает инструмент: «Да вот, раму для нового конвейера довариваю. До конца смены нужно обязательно каркас собрать».",
-                choices: [
-                    {
-                        text: "«Отлично. Вижу, что вы работаете с поднятой маской и в темных очках. С чем связана такая подмена СИЗ?»",
-                        trust: 90,
-                        next: "step2_reveal"
-                    }
-                ]
-            },
-            step2_reveal: {
-                bot_text: "Николай вздыхает: «Да понимаете, стекло на щитке совсем затерлось, мутное всё. В темноте цеха вообще не видно, куда варить, шов кривой идет. Вот я свои старые солнцезащитные и надел — они хоть и темные, но пластик чистый, через них стык нормально видно. И в глаза ничего не летит».",
-                choices: [{ text: "Завершить открытый диалог и заполнить чек-лист", trust: 85, triggerChecklist: true }]
-            },
-            checklist: {
-                subtitle: "На основе реплик Николая определите истинную причину нарушения для чек-листа наблюдателя:",
-                options: [
-                    { text: "Модель «Ради скорости»", sub: "Запись в чек-лист: Спешка из-за производственного плана", correct: false },
-                    { text: "Модель «По привычке»", sub: "Запись в чек-лист: Ложное чувство безопасности / Подмена СИЗ бытовыми предметами", correct: true },
-                    { text: "Модель «Из-за условий»", sub: "Запись в чек-лист: Сбой в снабжении / Выдача неисправных, затертых СИЗ", correct: false },
-                    { text: "Модель «Из-за усталости»", sub: "Запись в чек-лист: Физиологическое утомление", correct: false }
-                ],
-                success_msg: "Идеально! Николай искренне считает бытовые очки адекватной заменой («в них и видно, и ничего не летит»). Это ложный барьер безопасности, завязанный на привычку и большой стаж. Штрафовать бесполезно — нужно разбирать риски и менять затертое стекло.",
-                fail_msg: "Не совсем верно. Хотя Николай упомянул мутное стекло (условия), его ключевое убеждение — подмена СИЗ бытовой вещью и ложная уверенность в ее надежности («в них нормально видно и ничего не летит»). Это классическая модель «По привычке»."
-            }
+    // База сценариев для трех сотрудников
+    const dialogTree = {
+        // --- ДИАЛОГ 1: НИКОЛАЙ ---
+        "nic_1": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Этап 1: Поиск контакта",
+            sys: "Контекст: Ремонтник Николай работает УШМ без защитного экрана. Вы подошли для открытого диалога.",
+            replica: "Ну что такое? Опять замечание писать будете? У нас план горит, некогда мне бумажки ваши подписывать...",
+            options: [
+                { text: "Николай, прекращайте работу! Почему без щитка? Пишу предписание, это грубое нарушение.", next: "fail_caratel" },
+                { text: "Николай, привет. Писать ничего не собираюсь. Я вижу, что ты без защитного экрана работаешь. Расскажи, какую задачу сейчас выполняешь?", next: "nic_2" }
+            ]
         },
-        igor: {
-            title: "Кейс 2 из 2: Слесарь Игорь",
-            name: "Игорь",
-            role: "Слесарь-ремонтник, Участок №2<br>Стаж: 3 года",
-            icon: "🔧",
-            start: {
-                bot_text: "Вы переходите на соседний участок. Слесарь Игорь разбирает редуктор. Чтобы выбить заклинивший вал, он использует тяжелую кувалду с растрескавшейся, перемотанной изолентой деревянной рукояткой.",
-                choices: [
-                    {
-                        text: "«Игорь, немедленно бросьте этот опасный инструмент! Вы с ума сошли? Рукоятка разлетится, покалечите и себя, и людей!»",
-                        trust: 20,
-                        next: "fail_tone"
-                    },
-                    {
-                        text: "«Игорь, добрый день. Поделитесь, пожалуйста, какую операцию сейчас выполняете на редукторе?»",
-                        trust: 75,
-                        next: "step2_good"
-                    }
-                ]
-            },
-            fail_tone: {
-                bot_text: "Игорь швыряет кувалду на пол и упирает руки в бока: «Слушайте, не надо на меня кричать. Мне вал выбить надо, работа стоит. Не нравится инструмент — идите и ищите на заводе другой». Диалог полностью заблокирован.",
-                choices: [{ text: "Диалог завершен. Перейти к заполнению чек-листа", trust: 20, triggerChecklist: true }]
-            },
-            step2_good: {
-                bot_text: "Игорь опускает инструмент: «Да вот, заклинило промежуточный вал, пытаюсь сорвать его с места кувалдой, иначе весь узел никак не разобрать».",
-                choices: [
-                    {
-                        text: "«Понял. Обратил внимание на рукоятку кувалды — она треснула и замотана изолентой. Расскажите, почему используете именно её?»",
-                        trust: 90,
-                        next: "step2_reveal"
-                    }
-                ]
-            },
-            step2_reveal: {
-                bot_text: "Игорь разводит руками: «Да я бы рад взять нормальный медный молоток или целую кувалду, но у нас на инструментальном складе новые рукоятки третью неделю получить не можем — снабжение не завезло. А чинить редуктор нужно сегодня, конвейер стоит. Вот и работаем как можем, замотал наглухо, держит пока».",
-                choices: [{ text: "Завершить открытый диалог и заполнить чек-лист", trust: 85, triggerChecklist: true }]
-            },
-            checklist: {
-                subtitle: "На основе ответов Игоря определите истинную модель его поведения для чек-листа:",
-                options: [
-                    { text: "Модель «Ради скорости»", sub: "Запись в чек-лист: Спешка ради выполнения плана смены", correct: false },
-                    { text: "Модель «Из-за условий»", sub: "Запись в чек-лист: Вынужденное отклонение (сбой снабжения, отсутствие исправного инструмента)", correct: true },
-                    { text: "Модель «По привычке»", sub: "Запись в чек-лист: Игнорирование правил безопасности из-за стажа", correct: false },
-                    { text: "Модель «Из-за усталости»", sub: "Запись в чек-лист: Снижение концентрации внимания", correct: false }
-                ],
-                success_msg: "Правильно! Игорь — нарушитель поневоле. Системная организация труда на предприятии дала сбой (снабжение три недели не везет инструмент), и рабочему приходится рисковать. В чек-лист пишем «Из-за условий». Штрафовать рабочего здесь — грубейшая ошибка специалиста по охране труда.",
-                fail_msg: "Неверно. Игорь прямо объяснил: на складе три недели нет исправных рукояток из-за провала снабжения, а чинить узел нужно. Он вынужден работать опасным инструментом. Это чистая модель «Из-за условий»."
-            }
+        "nic_2": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Этап 2: Выявление мотива",
+            replica: "Да деталь вон зачищаю, сменщик-то мой не вышел сегодня. Приходится за двоих тут крутиться.",
+            options: [
+                { text: "Понятно, что нагрузка выросла. Но правила одни для всех. Где твой щиток лежит? Надень сейчас же.", next: "fail_shablon" },
+                { text: "Ого, за двоих — это тяжело. А как думаешь, к чему может привести работа без экрана, если диск заклинит или окалина отлетит?", next: "nic_3" }
+            ]
+        },
+        "nic_3": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Этап 3: Фиксация правды",
+            replica: "Да знаю я, мало не покажется, глаза не казенные. Просто... я вторую смену подряд херачу, глаза слипаются. А этот щиток еще бликует от лампы, вообще ни хера не вижу через него, вот и снял...",
+            options: [
+                { text: "Спасибо за честность, Николай. Причина понятна. Давай сделаем паузу, подберем чистый щиток без бликов. Я зафиксирую этот момент, поработаем с графиком смен.", next: "igor_1" }
+            ]
+        },
+
+        // --- ДИАЛОГ 2: ИГОРЬ ---
+        "igor_1": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Этап 1: Поиск контакта",
+            sys: "Контекст: Вы перешли на склад готовой продукции. Водитель погрузчика Игорь перемещает поддоны, не пристегнувшись ремнем безопасности.",
+            replica: "Ой, ну только не надо лекций про безопасность! Я тут 10 лет работаю, ни разу не перевернулся. Мне тут три поддотика переставить осталось.",
+            options: [
+                { text: "Игорь, 10 лет без аварий — это здорово. Но ремень — базовое требование. Почему решил не пристегиваться в этот раз?", next: "igor_2" },
+                { text: "До первого несчастного случая вы тут летаете! На погрузчик без ремня садиться запрещено, глушите мотор.", next: "fail_caratel" }
+            ]
+        },
+        "igor_2": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Этап 2: Выявление мотива",
+            replica: "Да потому что склад забит, мне каждые две минуты надо вылезать — то накладную проверить, то поддон руками поправить. Если я каждый раз пристегиваться буду, мы до утра фуру не отгрузим, а мастер за простой сожрет!",
+            options: [
+                { text: "Понимаю, фуру отгрузить надо вовремя. Но как думаешь, если на повороте колесо наедет на посторонний предмет и машина повалится, успеешь удержаться без ремня?", next: "igor_3" },
+                { text: "Мастер не имеет права заставлять вас нарушать. Пристегнитесь, или я останавливаю работы на складе.", next: "fail_shablon" }
+            ]
+        },
+        "igor_3": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Этап 3: Фиксация правды",
+            replica: "Да куда там удержаться, под него же и подмять может, прецеденты бывали... Ладно, уговорили, буду пристегиваться. Просто организация процесса дурацкая — пока сам не вылезешь и маркировку не посмотришь, дальше не поедешь.",
+            options: [
+                { text: "Договорились, Игорь. Безопасность дороже фуры. Пристегивайся, а проблему с маркировкой и лишними высадками я подниму на уровне руководства.", next: "master_1" }
+            ]
+        },
+
+        // --- ДИАЛОГ 3: МАСТЕР ПЕТРОВ ---
+        "master_1": {
+            hero: "Диалог 3: Мастер участка Петров",
+            progress: "Этап 1: Партнерство",
+            sys: "Контекст: Вы пришли к мастеру участка Петрову, чтобы обсудить выявленные маркеры поведения сотрудников в его смене.",
+            replica: "Так, ну и кого вы там у меня опять поймали? Снова будете мне палки в колёса со своей охраной труда совать? У меня план горит, люди и так на износе!",
+            options: [
+                { text: "Петров, ваши люди массово нарушают правила (Николай без щитка, Игорь без ремня). Если не наведете порядок, я пишу рапорт директору на закрытие участка.", next: "fail_caratel" },
+                { text: "Иваныч, я как раз пришел помочь тебе с планом. Твои люди пашут на пределе. Николай без щитка, потому что засыпает во вторую смену подряд, а Игорь без ремня из-за сбоя в маркировке груза. Давай решать системную проблему.", next: "master_2" }
+            ]
+        },
+        "master_2": {
+            hero: "Диалог 3: Мастер участка Петров",
+            progress: "Этап 2: Закрепление решения",
+            replica: "Мда... Сменщик Николая заболел, держим дыру в графике как можем. А по маркировке складские реально косячат, водителю приходится прыгать туда-сюда. Не думал, что они из-за этого нарушают... Что предлагаешь?",
+            options: [
+                { text: "Давай я выведу в отчет маркер «Усталость смены» и «Проблемы логистики». Потребуем от руководства временную подмену из соседнего цеха и наведем порядок с накладными. И люди целы, и план выполнишь без ЧП.", next: "win" }
+            ]
+        },
+
+        // --- ТУПИКИ И ФИНАЛЫ ---
+        "fail_caratel": {
+            hero: "Диалог сорван",
+            progress: "Ошибка контроля",
+            replica: "(Сотрудник закрывается и уходит в глухую оборону) Ой, всё, пишите что хотите! Общаться в таком тоне я не намерен. Работать некому, а они за бумажки трясутся!",
+            sys: "Вы свалились в карательный контроль и обвинения. Собеседник проявил агрессию, а истинные мотивы нарушений (усталость, плохая организация труда) остались скрыты. Цель профайлинга провалена.",
+            reset: true
+        },
+        "fail_shablon": {
+            hero: "Диалог сорван",
+            progress: "Формальный подход",
+            replica: "(Сотрудник нехотя подчиняется) Ладно, сделаю я как надо, раз вам так спокойнее... (Формально устраняет нарушение для галочки и ждет, пока вы уйдете).",
+            sys: "Вы сработали как стандартный инспектор. Правило выполнено «ради галочки», но истинная глубинная причина осталась на месте. Как только вы уйдете — опасное поведение вернется. Цель профайлинга не достигнута.",
+            reset: true
+        },
+        "win": {
+            hero: "Практикум успешно пройден!",
+            progress: "Итог профайлинга",
+            final: "<strong>Идеальный результат!</strong><br><br>Вы успешно провели профайлинг всех участников процесса. С помощью правила открытых вопросов вы не просто заставили людей надеть СИЗ, а выявили реальные корневые проблемы участка: <strong>дефицит штата в ночные смены, бликующее оборудование и системную ошибку логистики склада.</strong><br><br>Вы смогли перетянуть мастера Петрова на сторону безопасности, превратив охрану труда из «карателей» в бизнес-партнеров. Теперь эти живые данные готовы к системной оцифровке в Уроке 3!",
+            reset: true,
+            isWin: true
         }
     };
 
-    let currentCharacter = 'nikolai';
-    let currentState = 'start';
-    let userScore = 0;
+    let currentKey = "nic_1";
+    const chatWindow = document.getElementById('chat-window');
+    const optionsZone = document.getElementById('options-zone');
+    const heroTitle = document.getElementById('sim-hero-title');
+    const progressStatus = document.getElementById('sim-progress');
 
-    function initSimulator() {
-        document.getElementById('checklist-zone').style.display = 'none';
-        document.getElementById('result-zone').style.display = 'none';
-        document.getElementById('character-stage-block').style.display = 'flex';
-        document.getElementById('dialog-pane-zone').style.display = 'flex';
-        document.getElementById('sim-main-zone').style.display = 'flex';
+    function runEngine(stepKey) {
+        currentKey = stepKey;
+        const node = dialogTree[stepKey];
         
-        const charData = scenario[currentCharacter];
-        document.getElementById('current-stage-title').textContent = charData.title;
-        document.getElementById('char-name').textContent = charData.name;
-        document.getElementById('char-role').innerHTML = charData.role;
-        document.getElementById('char-icon').textContent = charData.icon;
-        
-        document.getElementById('chat-history').innerHTML = '';
-        currentState = 'start';
-        updateTrustBar(50);
-        
-        renderBotReply(charData.start.bot_text);
-        renderChoices(charData.start.choices);
-    }
+        // Обновляем заголовки
+        heroTitle.innerText = node.hero;
+        progressStatus.innerText = node.progress;
+        optionsZone.innerHTML = '';
 
-    function updateTrustBar(value) {
-        const bar = document.getElementById('trust-bar');
-        if (!bar) return;
-        bar.style.width = value + '%';
-        if (value <= 30) {
-            bar.style.background = '#dc2626';
-        } else if (value <= 65) {
-            bar.style.background = '#eab308';
-        } else {
-            bar.style.background = '#16a34a';
+        // Выводим системный контекст, если он есть
+        if (node.sys) {
+            printMsg(node.sys, 'system');
         }
-    }
 
-    function renderBotReply(text) {
-        const history = document.getElementById('chat-history');
-        if (!history) return;
-        const msg = document.createElement('div');
-        msg.className = 'msg bot';
-        msg.textContent = text;
-        history.appendChild(msg);
-        history.scrollTop = history.scrollHeight;
-    }
-
-    function renderChoices(choices) {
-        const pane = document.getElementById('action-pane');
-        if (!pane) return;
-        pane.innerHTML = '';
-        choices.forEach(c => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.textContent = c.text;
-            btn.onclick = () => handleChoice(c);
-            pane.appendChild(btn);
-        });
-    }
-
-    function handleChoice(choice) {
-        const history = document.getElementById('chat-history');
-        const msg = document.createElement('div');
-        msg.className = 'msg user';
-        msg.textContent = choice.text;
-        history.appendChild(msg);
-        
-        updateTrustBar(choice.trust);
-
-        if (choice.triggerChecklist) {
-            setTimeout(() => showChecklistZone(), 500);
-        } else {
-            currentState = choice.next;
-            const stepData = scenario[currentCharacter][currentState];
-            setTimeout(() => {
-                renderBotReply(stepData.bot_text);
-                renderChoices(stepData.choices);
-            }, 500);
+        // Выводим реплику персонажа
+        if (node.replica) {
+            printMsg(node.replica, 'worker');
         }
-    }
 
-    function showChecklistZone() {
-        document.getElementById('dialog-pane-zone').style.display = 'none';
-        const checklistZone = document.getElementById('checklist-zone');
-        checklistZone.style.display = 'flex';
-        
-        const charData = scenario[currentCharacter];
-        document.getElementById('checklist-subtitle').textContent = charData.checklist.subtitle;
-        
-        const container = document.getElementById('checklist-options-container');
-        container.innerHTML = '';
-        
-        charData.checklist.options.forEach((opt, idx) => {
-            const card = document.createElement('div');
-            card.className = 'option-card';
-            card.onclick = () => {
-                document.querySelectorAll('.option-card').forEach(r => r.classList.remove('selected'));
-                card.classList.add('selected');
-                card.querySelector('input').checked = true;
-            };
+        // Выводим финальные итоги
+        if (node.final) {
+            printMsg(node.final, 'final');
+        }
+
+        // Рендерим варианты действий
+        if (node.reset) {
+            const actionBtn = document.createElement('button');
+            actionBtn.className = 'option-btn';
+            actionBtn.style.textAlign = 'center';
+            actionBtn.style.fontWeight = 'bold';
             
-            card.innerHTML = `
-                <input type="radio" name="checklist-opt" value="${idx}" class="option-radio">
-                <div class="option-text">
-                    <strong>${opt.text}</strong>
-                    <span>${opt.sub}</span>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    function submitChecklist() {
-        const selected = document.querySelector('input[name="checklist-opt"]:checked');
-        if (!selected) {
-            alert("Пожалуйста, выберите одну из моделей поведения для записи!");
-            return;
-        }
-        
-        const idx = parseInt(selected.value);
-        const charData = scenario[currentCharacter];
-        const isCorrect = charData.checklist.options[idx].correct;
-        
-        document.getElementById('checklist-zone').style.display = 'none';
-        document.getElementById('dialog-pane-zone').style.display = 'flex';
-        
-        const history = document.getElementById('chat-history');
-        
-        const feedback = document.createElement('div');
-        feedback.className = 'msg system-status';
-        feedback.style.background = isCorrect ? '#f0fdf4' : '#fef2f2';
-        feedback.style.borderColor = isCorrect ? '#bbf7d0' : '#fca5a5';
-        feedback.style.color = isCorrect ? '#166534' : '#991b1b';
-        feedback.innerHTML = `<strong>Результат записи в чек-лист:</strong><br>${isCorrect ? charData.checklist.success_msg : charData.checklist.fail_msg}`;
-        history.appendChild(feedback);
-        history.scrollTop = history.scrollHeight;
-
-        if (isCorrect) userScore++;
-
-        const pane = document.getElementById('action-pane');
-        pane.innerHTML = '';
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'submit-btn';
-        
-        if (currentCharacter === 'nikolai') {
-            nextBtn.textContent = "Перейти к кейсу №2 (Слесарь Игорь)";
-            nextBtn.onclick = () => {
-                currentCharacter = 'igor';
-                initSimulator();
-            };
+            if (node.isWin) {
+                actionBtn.innerText = "Практика завершена успешно! 🏁";
+                actionBtn.style.borderColor = "var(--success-color)";
+                actionBtn.style.color = "var(--success-color)";
+            } else {
+                actionBtn.innerText = "Попробовать пройти заново 🔄";
+                actionBtn.style.borderColor = "var(--error-color)";
+                actionBtn.style.color = "var(--error-color)";
+                actionBtn.onclick = () => { location.reload(); };
+            }
+            optionsZone.appendChild(actionBtn);
         } else {
-            nextBtn.textContent = "Посмотреть общие итоги практикума";
-            nextBtn.onclick = () => showFinalResult();
-        }
-        pane.appendChild(nextBtn);
-    }
-
-    function showFinalResult() {
-        document.getElementById('character-stage-block').style.display = 'none';
-        document.getElementById('dialog-pane-zone').style.display = 'none';
-        document.getElementById('checklist-zone').style.display = 'none';
-        
-        const resultZone = document.getElementById('result-zone');
-        resultZone.style.display = 'flex';
-        
-        const title = document.getElementById('result-title');
-        const desc = document.getElementById('result-desc');
-        const icon = document.getElementById('result-icon');
-        
-        if (userScore === 2) {
-            icon.textContent = "🏆";
-            title.textContent = "Идеальный результат! (2 из 2)";
-            desc.textContent = "Вы мастерски провели оба диалога по правилу открытых вопросов, не спровоцировали конфликт на участках и безошибочно зафиксировали истинные мотивы нарушителей в чек-лист наблюдений!";
-        } else if (userScore === 1) {
-            icon.textContent = "⚡";
-            title.textContent = "Хороший результат (1 из 2)";
-            desc.textContent = "Вы успешно справились с одним из сотрудников, но в другом кейсе допустили ошибку при классификации модели поведения в чек-листе. Стоит потренироваться ещё раз.";
-        } else {
-            icon.textContent = "❌";
-            title.textContent = "Практикум не пройден (0 из 2)";
-            desc.textContent = "Вы ушли в обвинительный тон в беседах или неверно определили скрытые мотивы работников. Без этого навыка невозможно собрать чистые данные для аналитики. Попробуйте снова!";
+            node.options.forEach(opt => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerText = opt.text;
+                button.onclick = () => {
+                    printMsg(opt.text, 'user');
+                    optionsZone.innerHTML = ''; // Блокируем клики во время задержки
+                    setTimeout(() => {
+                        runEngine(opt.next);
+                    }, 500);
+                };
+                optionsZone.appendChild(button);
+            });
         }
     }
 
-    function restartSim() {
-        currentCharacter = 'nikolai';
-        userScore = 0;
-        initSimulator();
+    function printMsg(text, type) {
+        const div = document.createElement('div');
+        div.className = `msg msg-${type}`;
+        div.innerHTML = text;
+        chatWindow.appendChild(div);
+        // Держим автоскролл в пределах 600px
+        chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
-    // Абсолютно надежный запуск строго по готовности структуры дерева тегов документа
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initSimulator);
-    } else {
-        initSimulator();
-    }
+    // Старт симулятора
+    runEngine("nic_1");
 </script>
 
 </body>
