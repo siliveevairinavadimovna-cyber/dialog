@@ -81,3 +81,282 @@
         }
 
         .msg-worker {
+            background-color: var(--worker-msg);
+            color: var(--text-main);
+            align-self: flex-start;
+            border-top-left-radius: 2px;
+        }
+
+        .msg-user {
+            background-color: var(--user-msg);
+            color: var(--user-text);
+            align-self: flex-end;
+            border-top-right-radius: 2px;
+        }
+
+        .msg-system {
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fef3c7;
+            align-self: center;
+            text-align: center;
+            font-size: 13px;
+            max-width: 95%;
+        }
+
+        .msg-final {
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            align-self: center;
+            font-size: 14px;
+            max-width: 95%;
+            line-height: 1.5;
+        }
+
+        /* Зона вариантов ответов */
+        .sim-options-zone {
+            padding: 14px 20px;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: #ffffff;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 9px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 1.3;
+            transition: all 0.15s ease;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(37, 99, 235, 0.05);
+            transform: translateX(2px);
+        }
+
+        @keyframes simFadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sim-container">
+    <div class="sim-header">
+        <h3 class="sim-title" id="sim-hero-title">Диалог 1: Ремонтник Николай</h3>
+        <span class="sim-status" id="sim-progress">Этап 1 из 3</span>
+    </div>
+
+    <div class="sim-chat-window" id="chat-window"></div>
+
+    <div class="sim-options-zone" id="options-zone"></div>
+</div>
+
+<script>
+    const dialogTree = {
+        // --- ДИАЛОГ 1: НИКОЛАЙ ---
+        "nic_1": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Вопрос 1: Что ты делаешь?",
+            sys: "Контекст: Ремонтник Николай работает УШМ без защитного экрана. Вы подошли для открытого диалога.",
+            replica: "Ну что такое? Опять замечание писать будете? У нас план горит, некогда мне бумажки ваши подписывать...",
+            options: [
+                { text: "Николай, прекращайте работу! Почему без щитка? Пишу предписание, это грубое нарушение.", next: "fail_caratel" },
+                { text: "Николай, привет. Писать ничего не собираюсь. Я вижу, что ты без защитного экрана работаешь. Расскажи, какую задачу сейчас выполняешь?", next: "nic_2" }
+            ]
+        },
+        "nic_2": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Вопрос 2: Чем рискуешь?",
+            replica: "Да деталь вон зачищаю, сменщик-то мой не вышел сегодня. Приходится за двоих тут крутиться.",
+            options: [
+                { text: "Понятно, что нагрузка выросла. Но правила одни для всех. Где твой щиток лежит? Надень сейчас же.", next: "fail_shablon" },
+                { text: "Ого, за двоих — это тяжело. А как думаешь, к чему может привести работа без экрана, если диск заклинит или окалина отлетит?", next: "nic_3" }
+            ]
+        },
+        "nic_3": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Вопрос 3: Что нужно для безопасности?",
+            replica: "Да знаю я, мало не покажется, глаза не казенные. Просто... я вторую смену подряд херачу, глаза слипаются. А этот щиток еще бликует от лампы, вообще ни хера не вижу через него, вот и снял...",
+            options: [
+                { text: "Николай, нагрузка дикая, я тебя понял. А что нужно сделать прямо сейчас, чтобы ты мог безопасно закончить работу и не рисковать глазами?", next: "nic_4" }
+            ]
+        },
+        "nic_4": {
+            hero: "Диалог 1: Ремонтник Николай",
+            progress: "Фиксация договоренности",
+            replica: "Да блин, надо щиток нормальный со склада принести, нецарапанный, и кофе бахнуть, а то вырубает... Ну и смену мне закрыть вовремя, а не оставлять на третью.",
+            options: [
+                { text: "Договорились. Давай сделаем паузу, заменим щиток, а я переговорю с мастером по поводу твоего графика. Отдых необходим.", next: "igor_1" }
+            ]
+        },
+
+        // --- ДИАЛОГ 2: ИГОРЬ ---
+        "igor_1": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Вопрос 1: Что ты делаешь?",
+            sys: "Контекст: Вы перешли на склад. Водитель погрузчика Игорь перемещает поддоны, не пристегнувшись ремнем безопасности.",
+            replica: "Ой, ну только не надо лекций про безопасность! Я тут 10 лет работаю, ни разу не перевернулся. Мне тут три поддотика переставить осталось.",
+            options: [
+                { text: "Игорь, 10 лет без аварий — отличный показатель. Но я вижу, что ты не пристегнут. Расскажи, какую операцию сейчас выполняешь?", next: "igor_2" },
+                { text: "До первого несчастного случая вы тут летаете! На погрузчик без ремня садиться запрещено, глушите мотор.", next: "fail_caratel" }
+            ]
+        },
+        "igor_2": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Вопрос 2: Чем рискуешь?",
+            replica: "Да потому что склад забит, мне каждые две минуты надо вылезать — то накладную проверить, то поддон руками поправить. Если я каждый раз пристегиваться буду, мы до утра фуру не отгрузим, а мастер за простой сожрет!",
+            options: [
+                { text: "Понимаю, скорость отгрузки важна. Но как думаешь, если на повороте колесо наедет на кусок бруса и погрузчик начнет заваливаться, успеешь удержаться без ремня?", next: "igor_3" },
+                { text: "Мастер не имеет права заставлять вас нарушать. Пристегнитесь, или я останавливаю работы на складе.", next: "fail_shablon" }
+            ]
+        },
+        "igor_3": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Вопрос 3: Что нужно для безопасности?",
+            replica: "Да куда там удержаться, под него же из кабины и вылетают, прецеденты бывали... Тяжелая дура. Ладно, ваша правда, рисковать глупо.",
+            options: [
+                { text: "Игорь, безопасность дороже любой фуры. А как нам изменить процесс, чтобы ты и время на проверку накладных не терял, и пристегнут был?", next: "igor_4" }
+            ]
+        },
+        "igor_4": {
+            hero: "Диалог 2: Водитель Игорь",
+            progress: "Фиксация договоренности",
+            replica: "Да пусть складские маркировку клеят наружу поддона, а не к стенке! Мне тогда и вылезать каждую минуту не придется — прямо из кабины всё увижу и поеду.",
+            options: [
+                { text: "Отличное решение! Пристегивайся, а этот косяк с размещением маркировки я прямо сейчас пойду обсужу с вашим мастером.", next: "master_1" }
+            ]
+        },
+
+        // --- ДИАЛОГ 3: МАСТЕР ПЕТРОВ ---
+        "master_1": {
+            hero: "Диалог 3: Мастер участка Петров",
+            progress: "Этап 1: Партнерство",
+            sys: "Контекст: Вы пришли к мастеру участка Петрову, чтобы обсудить корневые причины нарушений в его смене.",
+            replica: "Так, ну и кого вы там у меня опять поймали? Снова будете мне палки в колёса со своей охраной труда совать? У меня план горит, люди и так на износе!",
+            options: [
+                { text: "Петров, ваши люди массово нарушают правила. Если не наведете порядок, я пишу рапорт директору на закрытие участка.", next: "fail_caratel" },
+                { text: "Иваныч, я как раз пришел помочь тебе с планом. Твои люди пашут на пределе. Николай работает без щитка, потому что засыпает во вторую смену подряд, а Игорь дергает ремень из-за дурацкой маркировки склада. Давай решать эти проблемы системно.", next: "master_2" }
+            ]
+        },
+        "master_2": {
+            hero: "Диалог 3: Master участка Петров",
+            progress: "Этап 2: Закрепление решения",
+            replica: "Мда... Сменщик Николая заболел, держим дыру в графике как можем. А по маркировке складские реально косячат, водителю приходится прыгать туда-сюда. Не думал, что они из-за этого нарушают... Что предлагаешь?",
+            options: [
+                { text: "Давай я выведу в отчет маркеры «Усталость смены» и «Проблемы логистики». Потребуем временную подмену из соседнего цеха и наведем порядок с накладными. И люди целы, и план выполнишь без ЧП.", next: "win" }
+            ]
+        },
+
+        // --- ТУПИКИ И ФИНАЛЫ ---
+        "fail_caratel": {
+            hero: "Диалог сорван",
+            progress: "Ошибка контроля",
+            replica: "(Сотрудник закрывается и уходит в глухую оборону) Ой, всё, пишите что хотите! Общаться в таком тоне я не намерен. Работать некому, а они за бумажки трясутся!",
+            sys: "Вы свалились в карательный контроль и обвинения. Собеседник проявил агрессию, а истинные мотивы нарушений (усталость, плохая организация труда) остались скрыты. Цель профайлинга провалена.",
+            reset: true
+        },
+        "fail_shablon": {
+            hero: "Диалог сорван",
+            progress: "Формальный подход",
+            replica: "(Сотрудник нехотя подчиняется) Ладно, сделаю я как надо, раз вам так спокойнее... (Формально устраняет нарушение для галочки и ждет, пока вы уйдете).",
+            sys: "Вы сработали как стандартный инспектор. Правило выполнено «ради галочки», но истинная глубинная причина осталась на месте. Как только вы уйдете — опасное поведение вернется. Цель профайлинга не достигнута.",
+            reset: true
+        },
+        "win": {
+            hero: "Практикум успешно пройден!",
+            progress: "Итог профайлинга",
+            final: "<strong>Идеальный результат!</strong><br><br>Вы успешно применили <strong>Правило трех открытых вопросов</strong> на всех этапах. Вы не просто заставили людей формально устранить нарушения, а вовлекли их в диалог и заставили самих предложить безопасные решения.<br><br>В процессе профайлинга вы вскрыли системные сбои: дефицит штата, бликующие СИЗ и ошибки маркировки склада, а также перетянули мастера Петрова на свою сторону. Теперь эти живые показатели готовы к оцифровке в Уроке 3!",
+            reset: true,
+            isWin: true
+        }
+    };
+
+    let currentKey = "nic_1";
+    const chatWindow = document.getElementById('chat-window');
+    const optionsZone = document.getElementById('options-zone');
+    const heroTitle = document.getElementById('sim-hero-title');
+    const progressStatus = document.getElementById('sim-progress');
+
+    function runEngine(stepKey) {
+        currentKey = stepKey;
+        const node = dialogTree[stepKey];
+        
+        heroTitle.innerText = node.hero;
+        progressStatus.innerText = node.progress;
+        optionsZone.innerHTML = '';
+
+        if (node.sys) {
+            printMsg(node.sys, 'system');
+        }
+
+        if (node.replica) {
+            printMsg(node.replica, 'worker');
+        }
+
+        if (node.final) {
+            printMsg(node.final, 'final');
+        }
+
+        if (node.reset) {
+            const actionBtn = document.createElement('button');
+            actionBtn.className = 'option-btn';
+            actionBtn.style.textAlign = 'center';
+            actionBtn.style.fontWeight = 'bold';
+            
+            if (node.isWin) {
+                actionBtn.innerText = "Практика завершена успешно! 🏁";
+                actionBtn.style.borderColor = "var(--success-color)";
+                actionBtn.style.color = "var(--success-color)";
+            } else {
+                actionBtn.innerText = "Попробовать пройти заново 🔄";
+                actionBtn.style.borderColor = "var(--error-color)";
+                actionBtn.style.color = "var(--error-color)";
+                actionBtn.onclick = () => { location.reload(); };
+            }
+            optionsZone.appendChild(actionBtn);
+        } else {
+            node.options.forEach(opt => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerText = opt.text;
+                button.onclick = () => {
+                    printMsg(opt.text, 'user');
+                    optionsZone.innerHTML = ''; 
+                    setTimeout(() => {
+                        runEngine(opt.next);
+                    }, 500);
+                };
+                optionsZone.appendChild(button);
+            });
+        }
+    }
+
+    function printMsg(text, type) {
+        const div = document.createElement('div');
+        div.className = `msg msg-${type}`;
+        div.innerHTML = text;
+        chatWindow.appendChild(div);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    runEngine("nic_1");
+</script>
+
+</body>
+</html>
